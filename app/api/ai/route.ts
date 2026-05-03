@@ -4,23 +4,22 @@ export async function POST(request: Request) {
   try {
     const { prompt } = await request.json();
     
-    const systemPrompt = `You are an expert guide. Create a 4-step roadmap for: "${prompt}".
-Respond ONLY with a raw JSON array. No markdown, no formatting.
-CRITICAL RULES:
-1. Do NOT include "Step 1:", "Step 2:", etc., in the title. Just the name of the action.
-2. Format EXACTLY like this:
+    const systemPrompt = `You are a professional roadmap architect. Create a 4-step roadmap for: "${prompt}".
+Respond ONLY with a raw JSON array.
+CRITICAL: For each step, provide a "videoQuery" which is a perfect search term to find a tutorial for that specific step on YouTube.
+Format:
 [
   {
-    "title": "Register Your Business",
-    "desc": "Before selling anything, you need to be legally registered.",
-    "checklist": ["Apply for registration", "Get a PAN card"],
-    "tip": "Sole Proprietorship is the simplest.",
-    "tools": ["GST Portal", "Razorpay"]
+    "title": "Action Name",
+    "desc": "Explanation.",
+    "checklist": ["Task 1", "Task 2"],
+    "videoQuery": "How to [Action Name] tutorial 2026",
+    "tip": "Insight.",
+    "tools": ["Tool A"]
   }
 ]`;
 
     let aiText = "";
-    
     if (process.env.GROQ_API_KEY) {
       const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -36,10 +35,6 @@ CRITICAL RULES:
     }
 
     const cleanedText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-    const steps = JSON.parse(cleanedText);
-
-    return NextResponse.json({ steps });
-  } catch (e) { 
-    return NextResponse.json({ steps: [] }); 
-  }
+    return NextResponse.json({ steps: JSON.parse(cleanedText) });
+  } catch (e) { return NextResponse.json({ steps: [] }); }
 }
